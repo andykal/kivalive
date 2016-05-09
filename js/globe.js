@@ -1,4 +1,5 @@
 function addEarth() {
+THREE.ImageUtils.crossOrigin = '';
     var e = new THREE.SphereGeometry(600, 50, 50),
         t = new THREE.SpotLight(16777215, .3);
     t.position.set(2850, 350, 0), t.castShadow = !0, t.shadowMapWidth = 1024, t.shadowMapHeight = 1024, t.shadowCameraNear = 500, t.shadowCameraFar = 4e3, t.shadowCameraFov = 30, t.shadowMapVisible = !0, camera.add(t), globe_far_side = new THREE.MeshPhongMaterial({
