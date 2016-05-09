@@ -5,7 +5,8 @@ function addEarth() {
         color: "white",
         emissive: "rgb(200,200,200)",
         transparent: !0,
-        map: THREE.ImageUtils.loadTexture("assets/" + GLOBE_SKIN_BACK),
+//        map: THREE.ImageUtils.loadTexture("assets/" + GLOBE_SKIN_BACK),
+        map: THREE.ImageUtils.loadTexture("https://raw.githubusercontent.com/andykal/kivalive/master/assets/" + GLOBE_SKIN_BACK),
         castShadow: !0,
         receiveShadow: !0,
         side: THREE.BackSide
@@ -13,7 +14,8 @@ function addEarth() {
         color: "white",
         emissive: "rgb(200,200,200)",
         transparent: !0,
-        map: THREE.ImageUtils.loadTexture("assets/" + GLOBE_SKIN_FRONT),
+//        map: THREE.ImageUtils.loadTexture("assets/" + GLOBE_SKIN_FRONT),
+        map: THREE.ImageUtils.loadTexture("https://raw.githubusercontent.com/andykal/kivalive/master/assets/" + GLOBE_SKIN_FRONT),
         castShadow: !0,
         receiveShadow: !0
     });
