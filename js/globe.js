@@ -1,8 +1,22 @@
 function addEarth() {
-THREE.ImageUtils.crossOrigin = '';
-    var e = new THREE.SphereGeometry(600, 50, 50),
+// Since globe is semi-transparent, render it in two pieces -- far side & near side.  This will prevent
+// weird banding artifacts caused by self-transparency of a sphere.
+
+	// Allow globe images to be fetched cross-site from a CDN
+        THREE.ImageUtils.crossOrigin = '';
+
+    var earth = new THREE.SphereGeometry(600, 50, 50),
         t = new THREE.SpotLight(16777215, .3);
-    t.position.set(2850, 350, 0), t.castShadow = !0, t.shadowMapWidth = 1024, t.shadowMapHeight = 1024, t.shadowCameraNear = 500, t.shadowCameraFar = 4e3, t.shadowCameraFov = 30, t.shadowMapVisible = !0, camera.add(t), globe_far_side = new THREE.MeshPhongMaterial({
+        t.position.set(2850, 350, 0), 
+        t.castShadow = !0, 
+        t.shadowMapWidth = 1024, 
+        t.shadowMapHeight = 1024, 
+        t.shadowCameraNear = 500, 
+        t.shadowCameraFar = 4e3, 
+        t.shadowCameraFov = 30, 
+        t.shadowMapVisible = !0, 
+        camera.add(t), 
+        globe_far_side = new THREE.MeshPhongMaterial({
         color: "white",
         emissive: "rgb(200,200,200)",
         transparent: !0,
@@ -18,10 +32,12 @@ THREE.ImageUtils.crossOrigin = '';
         castShadow: !0,
         receiveShadow: !0
     });
+
     var n = new THREE.Mesh(new THREE.SphereGeometry(600, 50, 50), globe_far_side);
     scene.add(n);
     var n = new THREE.Mesh(new THREE.SphereGeometry(600, 50, 50), globe_near_side);
     scene.add(n);
+
     var o = Shaders.atmosphere;
     uniforms = THREE.UniformsUtils.clone(o.uniforms), material = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -30,10 +46,11 @@ THREE.ImageUtils.crossOrigin = '';
         side: THREE.BackSide,
         blending: THREE.NormalBlending,
         transparent: !0
-    }), mesh = new THREE.Mesh(e, material), mesh.scale.set(.95, .95, .95), scene.add(mesh)
+    }), mesh = new THREE.Mesh(earth, material), mesh.scale.set(.95, .95, .95), scene.add(mesh)
 }
 
 function latLonToVector3(e, t) {
+// convert latitude/longitude to a vector3
     var n = new THREE.Vector3(0, 0, 0);
     t += 10, e -= 2;
     var o = PI_HALF - e * Math.PI / 180 - .01 * Math.PI,
@@ -43,6 +60,7 @@ function latLonToVector3(e, t) {
 }
 
 function bezierCurveBetween(e, t) {
+// calculate bezier curve between two points
     var n = e.clone().sub(t).length(),
         o = n > 1160 ? .5 : .4,
         r = n > 1160 ? .52 : .4,
@@ -64,6 +82,7 @@ function bezierCurveBetween(e, t) {
 }
 
 function getGeom(e) {
+// construct geometry for curve
     var t;
     if (geoms[e.length].length > 0) {
         t = geoms[e.length].pop();
@@ -79,6 +98,7 @@ function returnGeom(e) {
     geoms[e.vertices.length].push(e)
 }
 
+// tweening helpers
 function tweenFnLinear(e) {
     return e
 }
@@ -133,33 +153,41 @@ function tweenPoint() {
                 for (var p = 1; d > p; p++) a.vertices[p].set(0, 0);
                 a.verticesNeedUpdate = !0
             }
-        if (percent_complete = Math.min(s / 2, 1), r = getAnimatingValue(percent_complete, .1, .9, 6), pointsize = getAnimatingValue(percent_complete, .1, .9, 10), x_center = tweens[e].x - offset, y_center = tweens[e].y, borrower_name = tweens[e].name, x_offset = tweens[e].x_offset, ctx.fillStyle = tweens[e].color, ctx.beginPath(), ctx.rect(x_center - 2 * r / 2, y_center - 2 * r / 2, 2 * r, 2 * r), ctx.fill(), ctx.lineWidth = 1, ctx.strokeStyle = "black", ctx.stroke(), ctx.fillStyle = "black", ctx.font = pointsize + "px Arial", wrapText(ctx, x_offset, borrower_name, tweens[e].x, y_center, 75, pointsize), s >= 2) {
+        if (percent_complete = Math.min(s / 2, 1), r = getAnimatingValue(percent_complete, .1, .9, 6), pointsize = getAnimatingValue(percent_complete, .1, .9, 20), x_center = tweens[e].x - offset, y_center = tweens[e].y, borrower_name = tweens[e].name, x_offset = tweens[e].x_offset, ctx.fillStyle = tweens[e].color, ctx.beginPath(), ctx.rect(x_center - 2 * r / 2, y_center - 2 * r / 2, 2 * r, 2 * r), ctx.fill(), ctx.lineWidth = 1, ctx.strokeStyle = "black", ctx.stroke(), ctx.fillStyle = "black", ctx.font = pointsize + "px Arial", wrapText(ctx, x_offset, borrower_name, tweens[e].x, y_center, 75, pointsize), s >= 2) {
             var m = n.line;
             scene.remove(m), lines.splice(lines.indexOf(m), 1), returnGeom(a), tweens.splice(e, 1)
         }
     }
 }
 
-function lender_registered(e, t, n, o, r, a) {
+function lender_registered(name, lat, lon, color_r, color_g, color_b) {
+// show new lender who just signed up
     if (VISIBLE) {
-        coords = new Array, coords[0] = t, coords[1] = n, coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
-        var i = coords2[0],
-            s = coords2[1],
-            l = getLabelLocation(e.length);
+        coords = new Array; 
+	coords[0] = lat; 
+	coords[1] = lon; 
+
+	coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
+
+        var x_coord = coords2[0],
+            y_coord = coords2[1],
+            l = getLabelLocation(name.length);
+
         points.push({
             type: "lender",
             x_offset: l,
-            x: i,
-            y: s,
+            x: x_coord,
+            y: y_coord,
             time: Date.now(),
-            name: e + " just joined Kiva",
-            color: "rgb(" + parseInt(o) + ", " + parseInt(r) + ", " + parseInt(a) + ")",
+            name: name + " just joined Kiva",
+            color: "rgb(" + parseInt(color_r) + ", " + parseInt(color_g) + ", " + parseInt(color_b) + ")",
             duration: 2500
         })
     }
 }
 
 function lender_joined_team(e, t, n, o, r, a, i) {
+// show that lender just joined a team
     if (VISIBLE) {
         coords = new Array, coords[0] = t, coords[1] = n, coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
         var s = coords2[0],
@@ -178,26 +206,34 @@ function lender_joined_team(e, t, n, o, r, a, i) {
     }
 }
 
-function loan_registered(e, t, n, o, r, a) {
+function loan_registered(name, lat, lon, color_r, color_g, color_b) {
+// show that a new loan was activated
     if (VISIBLE) {
-        coords = new Array, coords[0] = t, coords[1] = n, coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
-        var i = coords2[0],
-            s = coords2[1],
-            l = getLabelLocation(e.length);
+        coords = new Array; 
+	coords[0] = lat; 
+	coords[1] = lon; 
+
+	coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
+
+        var x_coord = coords2[0],
+            y_coord = coords2[1],
+            l = getLabelLocation(name.length);
+
         points.push({
             type: "borrower",
             x_offset: l,
-            x: i,
-            y: s,
+            x: x_coord,
+            y: y_coord,
             time: Date.now(),
-            name: "New Loan: " + e,
-            color: "rgb(" + parseInt(o) + ", " + parseInt(r) + ", " + parseInt(a) + ")",
+            name: "New Loan: " + name,
+            color: "rgb(" + parseInt(color_r) + ", " + parseInt(color_g) + ", " + parseInt(color_b) + ")",
             duration: 2500
         })
     }
 }
 
 function add_loans_purchased(e) {
+// show that a lender funded one or more loans
     if (VISIBLE) {
         lender_lat = parseFloat(e.lender.lat), lender_lon = parseFloat(e.lender.lon), lender_name = e.lender.name, null == lender_name && (lender_name = "Anonymous"), color_r = parseInt(e.color.r), color_g = parseInt(e.color.g), color_b = parseInt(e.color.b), lender = [lender_lat, lender_lon, lender_name, color_r, color_g, color_b];
         var t = new Array;
@@ -210,34 +246,119 @@ function add_loans_purchased(e) {
     }
 }
 
-function newPath() {
+function newBorrower() {
+// for testing -- display new borrower
+	borrower_idx = parseInt(Math.random() * geos.length);
+	borrower_coords = geos[borrower_idx];
+	borrower_name_idx = parseInt(Math.random() * borrowers.length);
+	borrower_name = borrowers[borrower_name_idx];
+	loanuse_idx = parseInt(Math.random() * loanuse.length);
+	loanuse_text = loanuse[loanuse_idx];
+	color_r = parseInt(30 + 200 * Math.random()); 
+	color_g = parseInt(30 + 200 * Math.random()); 
+	color_b = parseInt(30 + 200 * Math.random()); 
+
+	new_borrower_text_content = "<b>New Loan:</b> " + borrower_name + " needs a loan to " + loanuse_text;
+
+
+//	var new_borrower_text = document.getElementById("new_borrower_text");
+//	new_borrower_text.innerHTML = new_borrower_text_content;
+
+	color = rgbToHex(color_r, color_g, color_b);
+	writeToScroller(new_borrower_text_content, color);
+
+	// show loan on 3D globe
+	loan_registered(borrower_name, borrower_coords[0], borrower_coords[1], color_r, color_g, color_b);
+
+	// show loan on 2D map
+	var p = Processing.getInstanceById("ll");
+	p.loan_registered(borrower_name, borrower_coords[0], borrower_coords[1], color_r, color_g, color_b);
+
+}
+
+function newLender() {
+// for testing -- display new lender
+	lender_idx = parseInt(Math.random() * geos.length);
+	lender_coords = geos[lender_idx];
+	lender_name_idx = parseInt(Math.random() * lenders.length);
+	lender_name = lenders[lender_name_idx];
+	color_r = parseInt(30 + 200 * Math.random()); 
+	color_g = parseInt(30 + 200 * Math.random()); 
+	color_b = parseInt(30 + 200 * Math.random()); 
+
+	new_lender_text_content = lender_name + " just joined Kiva!";
+
+
+//	var new_lender_text = document.getElementById("new_lender_text");
+//	new_lender_text.innerHTML = new_lender_text_content;
+
+	color = rgbToHex(color_r, color_g, color_b);
+	writeToScroller(new_lender_text_content, color);
+	
+	// show lender on 3D globe
+	lender_registered(lender_name, lender_coords[0], lender_coords[1], color_r, color_g, color_b);
+
+	// show lender on 2D map
+	var p = Processing.getInstanceById("ll");
+	p.lender_registered(lender_name, lender_coords[0], lender_coords[1], color_r, color_g, color_b);
+
+}
+
+function newLoanPurchase() {
+// for testing -- add loan arcs from a random lender to 1-10 random borrowers
 	origin_idx = parseInt(Math.random() * geos.length);
 	origin_coords = geos[origin_idx];
-	how_many = parseInt(Math.random() * 10);
+	lender_idx = parseInt(Math.random() * lenders.length);
+	lender_name = lenders[lender_idx];
+	borrower_idx = parseInt(Math.random() * borrowers.length);
+	borrower_name = borrowers[borrower_idx];
+	loanuse_idx = parseInt(Math.random() * loanuse.length);
+	loanuse_text = loanuse[loanuse_idx];
+
+	// 60% should only go to one borrower; the other 50% should go to 2-10 borrowers.
+	if ( Math.random() <= 0.6 ) { how_many = 1; }
+	else { how_many = 1 + parseInt(Math.random() * 9); }
 	color = getColor();
+	new_loan_text_content = lender_name + " made a loan, which helps " + borrower_name + " " + loanuse_text + ".";
+	if ( how_many > 1 ) { new_loan_text_content += " (+" + how_many + " more)"; }
 
-//console.log(orig[originate_at]);
-//console.log(dest[terminate_at]);
-
-	originate_at = [origin_coords[0], origin_coords[1], "Origin", color[0], color[1], color[2]];
+	originate_at = [origin_coords[0], origin_coords[1], "" + lender_name, color[0], color[1], color[2]];
 
 	var terminate_at = new Array;
 
 	for (b = 0; b <= how_many; b++) {
 		dest_idx = parseInt(Math.random() * geos.length);
-		lat = parseFloat(geos[dest_idx][0]), lon = parseFloat(geos[dest_idx][1]), color_r = parseInt(30 + 200 * Math.random()), color_g = parseInt(30 + 200 * Math.random()), color_b = parseInt(30 + 200 * Math.random()), name = "Dest " + b;
+		lat = parseFloat(geos[dest_idx][0]); 
+		lon = parseFloat(geos[dest_idx][1]); 
+		color_r = parseInt(30 + 200 * Math.random()); 
+		color_g = parseInt(30 + 200 * Math.random()); 
+		color_b = parseInt(30 + 200 * Math.random()); 
+		name = borrower_name;
+
+		// if this lender made more than one loan, change borrower name for each one
+		if ( how_many > 1 ) { borrower_name = borrowers[parseInt(Math.random() * borrowers.length)]; }
+
 		var a = [lat, lon, name, color_r, color_g, color_b];
 		terminate_at[b] = a;
 	}
+
+//	var new_loan_text = document.getElementById("new_loan_text");
+//	new_loan_text.innerHTML = new_loan_text_content;
+
+	color = rgbToHex(color[0], color[1], color[2]);
+	writeToScroller(new_loan_text_content, color);
+
 
 	addData(originate_at, terminate_at);
 }
 
 function addData(e, t) {
+// add new lender/borrower(s) data to the viz
     for (var n = {
         lat: e[0],
         lon: e[1]
     }, o = latLonToVector3(n.lat, n.lon), r = e[3], a = e[4], i = e[5], s = rgbToHex(r, a, i), l = t.length <= FAT_BASKET_THRESHOLD ? LAUNCH_OFFSET : LAUNCH_OFFSET_FAST, c = 0, d = 0; d < t.length; d++) {
+
         var p = {
             lat: t[d][0],
             lon: t[d][1]
@@ -248,6 +369,7 @@ function addData(e, t) {
             E = o.clone().sub(m).length(),
             w = d * l;
         coords = new Array, coords[0] = p.lat, coords[1] = p.lon, coords2 = latLonToXY(coords, MAP_HEIGHT, MAP_WIDTH);
+
         var _ = coords2[0],
             u = coords2[1],
             f = E + MIN_DURATION,
@@ -307,7 +429,7 @@ function render() {
         }
         Date.now() - points[e].time >= 2.1 * points[e].duration && points.splice(e, 1)
     }
-    for (var e = 0; e < points.length; e++) switch (percent_complete = getPercentComplete(0, 2.1 * points[e].duration, Date.now() - points[e].time), r = getAnimatingValue(Math.abs(percent_complete), .1, .9, 6), alpha = getAnimatingValue(percent_complete, .2, .8, 1), pointsize = getAnimatingValue(percent_complete, .1, .9, 10), points[e].type) {
+    for (var e = 0; e < points.length; e++) switch (percent_complete = getPercentComplete(0, 2.1 * points[e].duration, Date.now() - points[e].time), r = getAnimatingValue(Math.abs(percent_complete), .1, .9, 6), alpha = getAnimatingValue(percent_complete, .2, .8, 1), pointsize = getAnimatingValue(percent_complete, .1, .9, 20), points[e].type) {
         case "lender":
             ctx.fillStyle = points[e].color, ctx.globalAlpha = 1, ctx.beginPath(), ctx.arc(points[e].x - r / 2, points[e].y, r, 0, 2 * Math.PI, !1), ctx.fill(), ctx.lineWidth = 1, ctx.strokeStyle = "black", ctx.stroke(), ctx.fillStyle = "black", ctx.font = pointsize + "px Arial", wrapText(ctx, points[e].x_offset, points[e].name, points[e].x, points[e].y, 75, pointsize);
             break;

@@ -10,8 +10,11 @@ function check_tx() {
                 n = .65 + .35 * Math.random(),
                 e = .3 + .15 * Math.random(),
                 r = hslToRgb(o, n, e);
+
+            // if lender is associated with HP account, assign color to HP blue
             if (1579853 == tx[idx][8]) i = 0, u = 150, s = 214;
             else var i = parseInt(r[0]),
+
             u = parseInt(r[1]), s = parseInt(r[2]);
             var P = [parseFloat(tx[idx][4]), parseFloat(tx[idx][5]), tx[idx][2], i, u, s],
                 H = [parseFloat(tx[idx][6]), parseFloat(tx[idx][7]), tx[idx][3], 200, 100, 200];

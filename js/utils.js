@@ -1,3 +1,21 @@
+function tick() {
+	// should we fund a loan?
+	if (Math.random() <= 0.10) { newLoanPurchase(); }
+
+	// should a new lender join?
+	if (Math.random() <= 0.05) { newLender(); }
+
+	// should a new borrower appear?
+	if (Math.random() <= 0.05) {  newBorrower(); }
+}
+
+function writeToScroller(message, color) {
+	color2 = "#" + color.substring(2);
+	var scroller = document.getElementById("scroller");
+	scroller.innerHTML = scroller.innerHTML + "<span style='color:" + color2 + ";'>" + message + "</span><br>";
+	scroller.scrollTop = scroller.scrollHeight;
+}
+
 function wrapText(n, e, o, t, r, a, c) {
     var l = 0,
         i = e ? 0 > e ? -1 : 1 : 0;
