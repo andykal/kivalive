@@ -1,6 +1,6 @@
 function addEarth() {
 // Since globe is semi-transparent, render it in two pieces -- far side & near side.  This will prevent
-// weird banding artifacts caused by self-transparency of a sphere.
+// banding artifacts caused by self-transparency.
 
 	// Allow globe images to be fetched cross-site from a CDN
         THREE.ImageUtils.crossOrigin = '';
@@ -225,7 +225,7 @@ function loan_registered(name, lat, lon, color_r, color_g, color_b) {
             x: x_coord,
             y: y_coord,
             time: Date.now(),
-            name: "New Loan: " + name,
+            name: "New Borrower: " + name,
             color: "rgb(" + parseInt(color_r) + ", " + parseInt(color_g) + ", " + parseInt(color_b) + ")",
             duration: 2500
         })
@@ -258,7 +258,7 @@ function newBorrower() {
 	color_g = parseInt(30 + 200 * Math.random()); 
 	color_b = parseInt(30 + 200 * Math.random()); 
 
-	new_borrower_text_content = "<b>New Loan:</b> " + borrower_name + " needs a loan to " + loanuse_text;
+	new_borrower_text_content = "<b>New Borrower:</b> " + borrower_name + " needs a loan to " + loanuse_text;
 
 
 //	var new_borrower_text = document.getElementById("new_borrower_text");
@@ -306,6 +306,11 @@ function newLender() {
 
 function newLoanPurchase() {
 // for testing -- add loan arcs from a random lender to 1-10 random borrowers
+	var activity = new Object(); // this object will be passed to the 2D processing instance
+	var lender = new Object();
+	var color = new Object();
+	var loans = new Array();
+
 	origin_idx = parseInt(Math.random() * geos.length);
 	origin_coords = geos[origin_idx];
 	lender_idx = parseInt(Math.random() * lenders.length);
@@ -315,14 +320,23 @@ function newLoanPurchase() {
 	loanuse_idx = parseInt(Math.random() * loanuse.length);
 	loanuse_text = loanuse[loanuse_idx];
 
+	lender["lat"] = origin_coords[0];
+	lender["lon"] = origin_coords[1];
+	lender["name"] = "" + lender_name;
+
+
 	// 60% should only go to one borrower; the other 50% should go to 2-10 borrowers.
 	if ( Math.random() <= 0.6 ) { how_many = 1; }
 	else { how_many = 1 + parseInt(Math.random() * 9); }
-	color = getColor();
+	loan_color = getColor();
 	new_loan_text_content = lender_name + " made a loan, which helps " + borrower_name + " " + loanuse_text + ".";
 	if ( how_many > 1 ) { new_loan_text_content += " (+" + how_many + " more)"; }
 
-	originate_at = [origin_coords[0], origin_coords[1], "" + lender_name, color[0], color[1], color[2]];
+	originate_at = [origin_coords[0], origin_coords[1], "" + lender_name, loan_color[0], loan_color[1], loan_color[2]];
+
+	color["r"] = loan_color[0];
+	color["g"] = loan_color[1];
+	color["b"] = loan_color[2];
 
 	var terminate_at = new Array;
 
@@ -340,16 +354,52 @@ function newLoanPurchase() {
 
 		var a = [lat, lon, name, color_r, color_g, color_b];
 		terminate_at[b] = a;
+
+		var loan = new Object();
+		var location = new Object();
+		location["lat"] = lat;
+		location["lon"] = lon;
+		loan["location"] = location;
+		loan["name"] = name;
+		loan["status"] = "fundraising";
+
+		loans[b] = loan;
 	}
 
 //	var new_loan_text = document.getElementById("new_loan_text");
 //	new_loan_text.innerHTML = new_loan_text_content;
 
-	color = rgbToHex(color[0], color[1], color[2]);
-	writeToScroller(new_loan_text_content, color);
+	loan_color = rgbToHex(loan_color[0], loan_color[1], loan_color[2]);
+	writeToScroller(new_loan_text_content, loan_color);
 
-
+	// show new loan purchases on 3D globe
 	addData(originate_at, terminate_at);
+
+	// show new loan purchases  on 2D map
+	var p = Processing.getInstanceById("ll");
+
+/*
+        lender_lat = activity.lender.lat;
+        lender_lon = activity.lender.lon;
+        lender_name = activity.lender.name;
+        lcolor.r = activity.color.r;
+        lcolor.g = activity.color.g;
+        lcolor.b = activity.color.b;
+
+	num_loans = activity.loans.length;
+        borrower_lat = activity.loans[i].location.lat;
+        borrower_lon = activity.loans[i].location.lon;
+        borrower_name = activity.loans[i].name;
+        status = "fundraising";
+*/
+
+	activity["lender"] = lender;
+	activity["color"] = color;
+	activity["loans"] = loans;
+
+//console.log(activity);
+
+	p.add_loans_purchased(activity, 0);
 }
 
 function addData(e, t) {
@@ -467,6 +517,11 @@ var POS_X = 1800,
     GLOBE_SKIN_BACK = "trans_world_50.png",
     path = window.location.pathname;
 "/live" == path.substr(0, 5) ? (WIDTH = 654, HEIGHT = 600) : "/replay" == path.substr(0, 7) && (WIDTH = 950, HEIGHT = 600, GLOBE_SKIN_FRONT = "hp_80.png", GLOBE_SKIN_BACK = "hp_50.png"), MAP_HEIGHT = 1024, MAP_WIDTH = 2048;
+
+	// override above dimensions for this demo
+	WIDTH = 1150; 
+	HEIGHT = 500;
+
 var PI_HALF = Math.PI / 2,
     IDLE = !0,
     IDLE_TIME = 3e3,
@@ -504,7 +559,9 @@ var PI_HALF = Math.PI / 2,
     }, renderer = new THREE.WebGLRenderer({
         antialias: !0
     });
-renderer.setSize(WIDTH, HEIGHT), renderer.setClearColor(15658734, 1);
+//renderer.setSize(WIDTH, HEIGHT), renderer.setClearColor(15658734, 1);
+renderer.setSize(WIDTH, HEIGHT), renderer.setClearColor(0xFFFFFF, 1);
+console.log("WIDTH=" + WIDTH + ", HEIGHT=" + HEIGHT);
 var mapDiv = document.getElementById("globe");
 mapDiv.appendChild(renderer.domElement);
 var camera = new THREE.PerspectiveCamera(FOV, WIDTH / HEIGHT, NEAR, FAR);
@@ -520,20 +577,6 @@ var tweens = [],
     points = [],
     lineColors = [],
     ctx = document.querySelector("#canvas").getContext("2d");
-
-var orig2 = new Array(
-[ -45.8745994567871, 170.503005981445],
-[ 49.263599395752, -123.138999938965],
-[ 49.8955993652344, -97.138298034668],
-[ 50.447234, -104.618013],
-[ 51.045, -114.0572222],
-[ 51.0453246, -114.0581012],
-[ 51.0536994934082, -114.06199645996101],
-[ 53.540901184082, -113.49400329589801],
-[ 53.543564, -113.490452],
-[ 53.710098266601605, -113.21299743652298],
-[ 56.1267013549805, 10.1091995239258],
-[ 61.215599060058594, -149.897994995117]);
 
 ! function() {
     for (var e = 0; 10 > e; e++) {

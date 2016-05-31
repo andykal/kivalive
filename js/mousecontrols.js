@@ -27,9 +27,9 @@
             target.x = n.x + .005 * (r.x - o), target.y = n.y + .005 * (r.y - u), target.y = target.y > PI_HALF ? PI_HALF : target.y, target.y = target.y < -PI_HALF ? -PI_HALF : target.y
         }
     }), renderer.domElement.addEventListener("mousewheel", function(e) {
-        return target.zoom -= .3 * e.wheelDeltaY, target.zoom > 2500 && (target.zoom = 2500), target.zoom < 1500 && (target.zoom = 1500), e.preventDefault(), !1
+        return target.zoom -= .3 * e.wheelDeltaY, target.zoom > 2500 && (target.zoom = 2500), target.zoom < 1750 && (target.zoom = 1750), e.preventDefault(), !1
     }), renderer.domElement.addEventListener("DOMMouseScroll", function(e) {
-        return target.zoom += 3 * e.detail, target.zoom > 2500 && (target.zoom = 2500), target.zoom < 1500 && (target.zoom = 1500), e.preventDefault(), !1
+        return target.zoom += 3 * e.detail, target.zoom > 2500 && (target.zoom = 2500), target.zoom < 1750 && (target.zoom = 1750), e.preventDefault(), !1
     }), document.querySelector("#fullscreen").addEventListener("click", function() {
         var e = document.querySelector("#globe");
         e.requestFullScreen && e.requestFullScreen(), e.webkitRequestFullScreen && e.webkitRequestFullScreen(), e.mozRequestFullScreen && e.mozRequestFullScreen()

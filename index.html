@@ -6,36 +6,72 @@
 function startActivity() {
 	interval = setInterval("tick();", 300)
 }
+
+function showhide(){
+	status=document.getElementById("2D").style.visibility;
+	if (status == "hidden") { 
+		status = "visible"; 
+		document.getElementById("2d3dtext").innerHTML = "2D map (non-interactive) implemented in ProcessingJS. <a href='#' onClick='showhide();'>Click Here to switch to 3D view.</a>";
+	}
+	else { 
+		status = "hidden"; 
+		document.getElementById("2d3dtext").innerHTML = "3D map (<b>interactive: use click/drag & mousewheel</b>) implemented in ThreeJS.  <a href='#' onClick='showhide();'>Click Here to switch to 2D view.</a>";
+	}
+
+	document.getElementById("2D").style.visibility= status;
+}
+
 </script>
 <script src="js/processing.js"></script>
 
 </head>
 <body onload="startActivity();">
 
-<div id="container">
+<span style='color: #777; font-family: Arial'><center>
+<b>"Connecting people through lending to alleviate poverty" -- Visualization of lending activity on Kiva.org</b><br>
+<table width="700"><tr><td style='color: #777; font-family: Arial'>
+Activities shown: Lender makes one or more loans, New Lender joins, and New Borrower joins.<br>
+Loan arcs travel from lender's location to borrower's location.<br>
+(Note: activity on this page is randomized; see current realtime activity on <a href="https://www.kiva.org/live" target="_blank">kiva.org</a>)
+<p>
+</td></tr></table>
+<div id="2d3dtext">2D map (non-interactive) implemented in ProcessingJS. <a href='#' onClick='showhide();'>Click Here to switch to 3D view.</a></div>
+
+</center> </span>
+
+<div id="container" style="width:950; margin:auto; position:relative;">
+
+
+	<!-- testing buttons
 	<button id="new_loan_purchase" type="submit" class="button actNow" onclick="newLoanPurchase();">test</button>
 	<button id="new_lender" type="submit" class="button actNow" onclick="newLender();">test</button>
 	<button id="new_loan" type="submit" class="button actNow" onclick="newBorrower();">test</button>
-	<div id="globe" class="globe g8 a">
+	-->
 
-	<span style='color: #74b446'><center>This is Kiva/Live 2 beta; <a href="http://www.kiva.org/live?v=1">click here</a> for Kiva/Live 1.</center> </span>
+	<div id="globe" class="globe g8 a" style="position:absolute;left:10;top:30;">
 
 	<canvas id="canvas"  width="2048" height="1024" style="display: none;" ></canvas>
 
-	<div id="activity_label" style="font-family:Arial; color:black; font-size:14px; position:absolute; top:30;">Activity:</div>
-	<!--div id="outer_scroller" style="height:410px; width:300px; position:absolute; top:50; overflow:hidden;"-->
-		<div id="scroller" style="height:395; width:300px; overflow:auto; overflow-y:hidden; padding-right:20px; position:absolute; top:50; left:0; font-family:Arial; color:Blue; font-size: 10px; vertical-align:top;">
+	</div>
+
+	<div id="2D" style="width:800;height:500;background:white;position:absolute;left:300;top:30;">
+		<div id="live1" class="liveMap g8 a" style="width:654;position:relatie;left:0;top:0;">
+			<canvas id="ll" data-processing-sources="livemap.pde"></canvas>
 		</div>
-	<!--/div-->
+	</div>
+
+	<div id="activity" style="position:absolute; left:0; top:0;">
+		<div id="activity_label" style="font-family:Arial; color:black; font-size:14px; position:absolute; left:10; top:30;">Activity:</div>
+		<div id="scroller" style="height:395; width:300px; overflow:auto; overflow-y:hidden; padding-right:20px; position:absolute; top:50; left:10; font-family:Arial; color:Blue; font-size: 10px; vertical-align:top;">
+	</div>
 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 	</div>
 
 </div>
 
-<div id="live1" class="liveMap g8 a">
-	<canvas id="ll" data-processing-sources="livemap.pde"></canvas>
-</div>
+<br>
+
 
 <script src="js/data.js"></script>
 <script src="js/utils.js"></script>
@@ -49,7 +85,7 @@ function startActivity() {
 <script src="js/mousecontrols.js"></script>
 
 <script language="javascript">
-// processing init
+// processingJS init
 abs_width=654;
 abs_height=354;
 bg_map="livemap2.png";
